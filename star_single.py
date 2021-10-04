@@ -5,7 +5,7 @@
 
 # set up path
 
-# In[4]:
+# In[1]:
 
 
 # path to fasta file (raw data)
@@ -22,7 +22,7 @@ path_index = '/data/yyang18/ref_geonome/star_index_human/index/'
 
 # set up parameters
 
-# In[5]:
+# In[2]:
 
 
 # number of threads for star
@@ -31,7 +31,7 @@ thread = 64
 thread_sort = 4
 
 
-# In[6]:
+# In[3]:
 
 
 import subprocess
@@ -42,7 +42,7 @@ import pandas as pd
 
 # step1: read file_single
 
-# In[7]:
+# In[4]:
 
 
 file = pd.read_csv(file_single)
@@ -100,10 +100,7 @@ except:
 n = 0
 for filename,basename in zip(file['filename'],file['basename']):
     n = n + 1
-    trim_galore = 'trim_galore -q 20'+' '+                  '--phred33'+' '+\ 
-                  '--fastqc'+' '+                  '--gzip'+' '+\ 
-                  '--length 36'+' '+\ 
-                  '--trim-n'+' '+                  '-o'+' '+path_trim_galore+' '+                  '--basename'+' '+basename+' '+                  path_fasta+filename
+    trim_galore = 'trim_galore -q 20'+' '                  '--phred33'+' '                  '--fastqc'+' '                  '--gzip'+' '                  '--length 36'+' '                  '--trim-n'+' '                  '-o'+' '+path_trim_galore+' '                  '--basename'+' '+basename+' '+                  path_fasta+filename
     if n == len(file['filename']):
         process = subprocess.Popen(trim_galore.split(), stdout=subprocess.PIPE)
         process.communicate()
