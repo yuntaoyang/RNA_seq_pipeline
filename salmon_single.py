@@ -98,7 +98,10 @@ except:
 n = 0
 for filename,basename in zip(file['filename'],file['basename']):
     n = n + 1
-    trim_galore = 'trim_galore -q 20 --phred33 --fastqc --gzip --length 36 --trim-n'+' '+                   '-o'+' '+path_trim_galore+' '+                   '--basename'+' '+basename+' '+                   path_fasta+filename
+    trim_galore = 'trim_galore -q 20'+' '+                  '--phred33'+' '+\ 
+                  '--fastqc'+' '+                  '--gzip'+' '+\ 
+                  '--length 36'+' '+\ 
+                  '--trim-n'+' '+                  '-o'+' '+path_trim_galore+' '+                  '--basename'+' '+basename+' '+                  path_fasta+filename
     if n == len(file['filename']):
         process = subprocess.Popen(trim_galore.split(), stdout=subprocess.PIPE)
         process.communicate()
