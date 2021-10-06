@@ -9,7 +9,7 @@
 
 
 # path to fasta file (raw data)
-path_fasta = '/data/yyang18/test/'
+path_fasta = '/data/yyang18/RNA_seq_paired/'
 # file_paired (filename and basename)
 file_paired = '/home/yyang18/Project/SBMI_Zheng_NGS_Python_Script/RNA_seq/file_paired.csv'
 # path to the output of trim_galore
@@ -60,11 +60,6 @@ try:
     logger = logging.getLogger(__name__)
     logger.info("create the output directory of trim_galore: "+path_trim_galore)
 except:
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
     logging.info("File exists: "+path_trim_galore)
 
 
@@ -75,18 +70,8 @@ except:
 
 try:
     os.mkdir(path_salmon)
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
     logger.info("create the output directory of salmon: "+path_salmon)
 except:
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
     logging.info("File exists: "+path_salmon)
 
 
@@ -98,39 +83,29 @@ except:
 n = 0
 for filename_1,filename_2,basename in zip(file['filename_1'],file['filename_2'],file['basename']):
     n = n + 1
-    trim_galore = 'trim_galore -q 20'+' '                  '--phred33'+' '                  '--fastqc'+' '                  '--gzip'+' '                  '--length 36'+' '                  '--trim-n'+' '                  '--paired'+' '                  '-o'+' '+path_trim_galore+' '                  '--basename'+' '+basename+' '+                  path_fasta+filename_1+' '+                  path_fasta+filename_2
+    trim_galore = 'trim_galore -q 20'+' '                  '--phred33'+' '                  '--fastqc'+' '                  '--gzip'+' '                  '--length 36'+' '                  '--trim-n'+' '                  '--paired'+' '                  '-o'+' '+path_trim_galore+' '                  '--basename'+' '+basename+' '+                  path_fasta+filename_1+' '+                  path_fasta+filename_2+' '+                  '>'+' '+path_trim_galore+basename+'_trim.log'+' '+'2>&1'
     if n == len(file['filename_1']):
-        process = subprocess.Popen(trim_galore.split(), stdout=subprocess.PIPE)
+        process = subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         process.communicate()
     else:
-        subprocess.Popen(trim_galore.split(), stdout=subprocess.PIPE)
-logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-logger = logging.getLogger(__name__)
+        subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 logging.info('trim_galore is done!')
 
 
 # step5: salmon
 
-# In[10]:
+# In[ ]:
 
 
 n = 0
 for basename in file['basename']:
     n = n + 1
-    salmon = 'salmon quant -i'+' '+path_index+' '+             '-p'+' '+str(thread)+' '+             '-l A'+' '+             '-1'+' '+path_trim_galore+basename+'_val_1.fq.gz'+' '+             '-2'+' '+path_trim_galore+basename+'_val_2.fq.gz'+' '+             '--validateMappings'+' '+             '-o'+' '+path_salmon+basename
+    salmon = 'salmon quant -i'+' '+path_index+' '+             '-p'+' '+str(thread)+' '+             '-l A'+' '+             '-1'+' '+path_trim_galore+basename+'_val_1.fq.gz'+' '+             '-2'+' '+path_trim_galore+basename+'_val_2.fq.gz'+' '+             '--validateMappings'+' '+             '-o'+' '+path_salmon+basename+' '+             '>'+' '+path_salmon+basename+'_salmon.log'+' '+'2>&1'
     if n == len(file['basename']):
-        process = subprocess.Popen(salmon.split(), stdout=subprocess.PIPE)
+        process = subprocess.Popen(salmon,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         process.communicate()
     else:
-        subprocess.Popen(salmon.split(), stdout=subprocess.PIPE)
-logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-logger = logging.getLogger(__name__)
+        subprocess.Popen(salmon,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 logging.info('salmon is done!')    
 
 
