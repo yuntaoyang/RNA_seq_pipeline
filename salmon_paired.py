@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # run RNA_seq pipeline using python script (Salmon for single-end data)
+# # run RNA_seq pipeline using python script (Salmon for paired-end data)
 
 # set up path
 

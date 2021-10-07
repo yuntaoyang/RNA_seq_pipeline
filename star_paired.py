@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # run RNA_seq pipeline using python script (star for single-end data)
+# # run RNA_seq pipeline using python script (star for paired-end data)
 
 # set up path
 
@@ -9,7 +9,7 @@
 
 
 # path to fasta file (raw data)
-path_fasta = '/data/yyang18/test/'
+path_fasta = '/data/yyang18/RNA_seq_paired/'
 # file_paired (filename and basename)
 file_paired = '/home/yyang18/Project/SBMI_Zheng_NGS_Python_Script/RNA_seq/file_paired.csv'
 # path to the output of trim_galore
@@ -62,11 +62,6 @@ try:
     logger = logging.getLogger(__name__)
     logger.info("create the output directory of trim_galore: "+path_trim_galore)
 except:
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
     logging.info("File exists: "+path_trim_galore)
 
 
@@ -77,40 +72,25 @@ except:
 
 try:
     os.mkdir(path_star)
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
     logger.info("create the output directory of star: "+path_star)
 except:
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
     logging.info("File exists: "+path_star)
 
 
 # step4: trim_galore
 
-# In[11]:
+# In[ ]:
 
 
 n = 0
 for filename_1,filename_2,basename in zip(file['filename_1'],file['filename_2'],file['basename']):
     n = n + 1
-    trim_galore = 'trim_galore -q 20'+' '                  '--phred33'+' '                  '--fastqc'+' '                  '--gzip'+' '                  '--length 36'+' '                  '--trim-n'+' '                  '--paired'+' '                  '-o'+' '+path_trim_galore+' '                  '--basename'+' '+basename+' '+                  path_fasta+filename_1+' '+                  path_fasta+filename_2
+    trim_galore = 'trim_galore -q 20'+' '                  '--phred33'+' '                  '--fastqc'+' '                  '--gzip'+' '                  '--length 36'+' '                  '--trim-n'+' '                  '--paired'+' '                  '-o'+' '+path_trim_galore+' '                  '--basename'+' '+basename+' '+                  path_fasta+filename_1+' '+                  path_fasta+filename_2+' '+                  '>'+' '+path_trim_galore+basename+'_trim.log'+' '+'2>&1'
     if n == len(file['filename_1']):
-        process = subprocess.Popen(trim_galore.split(), stdout=subprocess.PIPE)
+        process = subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         process.communicate()
     else:
-        subprocess.Popen(trim_galore.split(), stdout=subprocess.PIPE)
-logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
-                        filemode="a",
-                        format="%(asctime)-15s %(levelname)-8s %(message)s")
-logger = logging.getLogger(__name__)
+        subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 logging.info('trim_galore is done!')
 
 
@@ -120,14 +100,9 @@ logging.info('trim_galore is done!')
 
 
 for basename in file['basename']:
-    star = 'STAR --runThreadN'+' '+str(thread)+' '+            '--outBAMsortingThreadN'+' '+str(thread_sort)+' '+            '--genomeDir'+' '+path_index+' '+            '--readFilesIn'+' '+path_trim_galore+basename+'_val_1.fq.gz'+' '+             path_trim_galore+basename+'_val_2.fq.gz'+' '+            '--readFilesCommand gunzip -c'+' '+            '--outSAMtype BAM SortedByCoordinate'+' '+            '--twopassMode Basic'+' '+            '--quantMode GeneCounts'+' '+            '--outFileNamePrefix'+' '+path_star+basename
-    process = subprocess.Popen(star.split(), stdout=subprocess.PIPE)
+    star = 'STAR --runThreadN'+' '+str(thread)+' '+            '--outBAMsortingThreadN'+' '+str(thread_sort)+' '+            '--genomeDir'+' '+path_index+' '+            '--readFilesIn'+' '+path_trim_galore+basename+'_val_1.fq.gz'+' '+             path_trim_galore+basename+'_val_2.fq.gz'+' '+            '--readFilesCommand gunzip -c'+' '+            '--outSAMtype BAM SortedByCoordinate'+' '+            '--twopassMode Basic'+' '+            '--quantMode GeneCounts'+' '+            '--outFileNamePrefix'+' '+path_star+basename+' '+            '>'+' '+path_star+basename+'_star.log'+' '+'2>&1'
+    process = subprocess.Popen(star,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     process.communicate()
-logging.basicConfig(level=logging.DEBUG, 
-                    filename="logfile", 
-                    filemode="a",
-                    format="%(asctime)-15s %(levelname)-8s %(message)s")
-logger = logging.getLogger(__name__)
 logging.info('star is done!')    
 
 
