@@ -5,7 +5,7 @@
 
 # set up path
 
-# In[5]:
+# In[1]:
 
 
 # path to fasta file (raw data)
@@ -13,25 +13,27 @@ path_fasta = '/data/yyang18/RNA_seq_paired/'
 # file_paired (filename and basename)
 file_paired = '/home/yyang18/Project/SBMI_Zheng_NGS_Python_Script/RNA_seq/file_paired.csv'
 # path to the output of trim_galore
-path_trim_galore = '/home/yyang18/Project/SBMI_Zheng_NGS_Python_Script/RNA_seq/trim_galore/'
+path_trim_galore = '/data/yyang18/trim_galore_star/'
 # path to the output of star
-path_star = '/home/yyang18/Project/SBMI_Zheng_NGS_Python_Script/RNA_seq/star/'
+path_star = '/data/yyang18/star/'
 # path to star index
 path_index = '/data/yyang18/ref_geonome/star_index_human/index/'
 
 
 # set up parameters
 
-# In[6]:
+# In[2]:
 
 
 # number of threads for star
-thread = 64
+thread = 8
 # number of threads for bam sorting
 thread_sort = 4
+# name of logfile
+log = 'logfile'
 
 
-# In[7]:
+# In[3]:
 
 
 import subprocess
@@ -42,68 +44,68 @@ import pandas as pd
 
 # step1: read file_single
 
-# In[8]:
+# In[4]:
 
 
 file = pd.read_csv(file_paired)
 
 
-# step2: create the output directory of trim_galore
-
-# In[8]:
+# In[5]:
 
 
-try:
-    os.mkdir(path_trim_galore)
-    logging.basicConfig(level=logging.DEBUG, 
-                        filename="logfile", 
+logging.basicConfig(level=logging.DEBUG, 
+                        filename=log, 
                         filemode="a",
                         format="%(asctime)-15s %(levelname)-8s %(message)s")
-    logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+
+
+# step2: create the output directory of trim_galore
+
+# In[6]:
+
+
+if os.path.isdir(path_trim_galore):
+    logger.info("File exists: "+path_trim_galore)
+else:
+    os.mkdir(path_trim_galore)
     logger.info("create the output directory of trim_galore: "+path_trim_galore)
-except:
-    logging.info("File exists: "+path_trim_galore)
 
 
 # step3: create the output directory of star
 
-# In[9]:
+# In[7]:
 
 
-try:
+if os.path.isdir(path_star):
+    logger.info("File exists: "+path_star)
+else:
     os.mkdir(path_star)
     logger.info("create the output directory of star: "+path_star)
-except:
-    logging.info("File exists: "+path_star)
 
 
 # step4: trim_galore
 
-# In[ ]:
+# In[8]:
 
 
-n = 0
 for filename_1,filename_2,basename in zip(file['filename_1'],file['filename_2'],file['basename']):
-    n = n + 1
     trim_galore = 'trim_galore -q 20'+' '                  '--phred33'+' '                  '--fastqc'+' '                  '--gzip'+' '                  '--length 36'+' '                  '--trim-n'+' '                  '--paired'+' '                  '-o'+' '+path_trim_galore+' '                  '--basename'+' '+basename+' '+                  path_fasta+filename_1+' '+                  path_fasta+filename_2+' '+                  '>'+' '+path_trim_galore+basename+'_trim.log'+' '+'2>&1'
-    if n == len(file['filename_1']):
-        process = subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-        process.communicate()
-    else:
-        subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
-logging.info('trim_galore is done!')
+    process = subprocess.Popen(trim_galore,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    process.communicate()
+    logger.info(basename+' trim_galore is done!')
 
 
 # step5: star
 
-# In[12]:
+# In[9]:
 
 
 for basename in file['basename']:
     star = 'STAR --runThreadN'+' '+str(thread)+' '+            '--outBAMsortingThreadN'+' '+str(thread_sort)+' '+            '--genomeDir'+' '+path_index+' '+            '--readFilesIn'+' '+path_trim_galore+basename+'_val_1.fq.gz'+' '+             path_trim_galore+basename+'_val_2.fq.gz'+' '+            '--readFilesCommand gunzip -c'+' '+            '--outSAMtype BAM SortedByCoordinate'+' '+            '--twopassMode Basic'+' '+            '--quantMode GeneCounts'+' '+            '--outFileNamePrefix'+' '+path_star+basename+' '+            '>'+' '+path_star+basename+'_star.log'+' '+'2>&1'
     process = subprocess.Popen(star,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     process.communicate()
-logging.info('star is done!')    
+    logger.info(basename+' star is done!')    
 
 
 # In[ ]:
